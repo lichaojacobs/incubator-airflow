@@ -19,9 +19,10 @@
 #
 
 from past.builtins import basestring, unicode
-
+import time
 import ast
 import datetime as dt
+from dateutil import tz
 import logging
 import os
 import pkg_resources
@@ -1909,6 +1910,11 @@ class Airflow(BaseView):
         return redirect('/admin/variable')
 
 
+def utc2local(utc):
+    epoch = time.mktime(utc.timetuple())
+    offset = dt.datetime.fromtimestamp(epoch) - dt.datetime.utcfromtimestamp(epoch)
+    return utc + offset
+
 class HomeView(AdminIndexView):
     @expose("/")
     @login_required
@@ -2044,6 +2050,7 @@ class HomeView(AdminIndexView):
 
         return self.render(
             'airflow/dags.html',
+            utc2local=utc2local,
             webserver_dags=webserver_dags_filtered,
             orm_dags=orm_dags,
             hide_paused=hide_paused,

@@ -29,6 +29,7 @@ import copy
 from collections import namedtuple, defaultdict
 from datetime import timedelta
 
+import re
 import dill
 import functools
 import getpass
@@ -828,7 +829,7 @@ class DagPickle(Base):
     the database.
     """
     id = Column(Integer, primary_key=True)
-    pickle = Column(PickleType(pickler=dill))
+    pickle = Column(LargeBinary)
     created_dttm = Column(UtcDateTime, default=timezone.utcnow)
     pickle_hash = Column(Text)
 
@@ -839,7 +840,11 @@ class DagPickle(Base):
         if hasattr(dag, 'template_env'):
             dag.template_env = None
         self.pickle_hash = hash(dag)
-        self.pickle = dag
+        raw = dill.dumps(dag)
+        reg_str = 'unusual_prefix_\w*{0}'.format(dag.dag_id)
+        result = re.sub(str.encode(reg_str), b'__main__', raw)
+        self.pickle =result
+        # self.pickle = dag
 
 
 class TaskInstance(Base, LoggingMixin):

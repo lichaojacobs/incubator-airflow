@@ -22,6 +22,7 @@ from __future__ import print_function
 from backports.configparser import NoSectionError
 import logging
 
+import dill
 import os
 import subprocess
 import textwrap
@@ -480,7 +481,7 @@ def run(args, dag=None):
             DagPickle).filter(DagPickle.id == args.pickle).first()
         if not dag_pickle:
             raise AirflowException("Who hid the pickle!? [missing pickle]")
-        dag = dag_pickle.pickle
+        dag = dill.loads(dag_pickle.pickle)
 
     task = dag.get_task(task_id=args.task_id)
     ti = TaskInstance(task, args.execution_date)

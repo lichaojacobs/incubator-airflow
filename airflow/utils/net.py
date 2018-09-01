@@ -18,6 +18,7 @@
 # under the License.
 #
 import importlib
+import os
 import socket
 from airflow.configuration import (conf, AirflowConfigException)
 
@@ -27,6 +28,10 @@ def get_hostname():
     Fetch the hostname using the callable from the config or using
     `socket.getfqdn` as a fallback.
     """
+    # try environment settings
+    if 'AIRFLOW_HOST_NAME' in os.environ:
+        return os.environ['AIRFLOW_HOST_NAME']
+
     # First we attempt to fetch the callable path from the config.
     try:
         callable_path = conf.get('core', 'hostname_callable')
